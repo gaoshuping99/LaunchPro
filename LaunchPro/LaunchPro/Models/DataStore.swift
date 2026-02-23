@@ -52,28 +52,8 @@ class DataStore: ObservableObject {
             folders = decodedFolders
         }
         
-        // Always add sample folders for testing
-        if folders.isEmpty {
-            let sampleFolder = FolderItem(
-                id: UUID().uuidString,
-                name: "常用应用",
-                isFolder: true,
-                order: 0,
-                page: 0,
-                appIDs: Array(apps.prefix(3).map { $0.id })
-            )
-            folders.append(sampleFolder)
-            
-            let sampleFolder2 = FolderItem(
-                id: UUID().uuidString,
-                name: "工作工具",
-                isFolder: true,
-                order: 1,
-                page: 0,
-                appIDs: []
-            )
-            folders.append(sampleFolder2)
-        }
+        // 不再自动创建默认文件夹 - 只有用户合并APP时才创建文件夹
+        // if folders.isEmpty - 保持空，不创建任何文件夹
     }
     
     func save() {

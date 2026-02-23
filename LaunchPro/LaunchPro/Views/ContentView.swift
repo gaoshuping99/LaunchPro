@@ -136,6 +136,7 @@ struct ContentView: View {
                             isExpanded: false,
                             onTap: { toggleFolder(folder) },
                             onDelete: { deleteFolder(folder) },
+                            iconSize: appController.iconSize,
                             onRename: { newName in renameFolder(folder, newName: newName) }
                         )
                     }
@@ -385,6 +386,7 @@ struct FolderItemView: View {
     let isExpanded: Bool
     let onTap: () -> Void
     let onDelete: () -> Void
+    let iconSize: CGFloat
     let onRename: (String) -> Void  // 修改为非可选
     
     @State private var isHovering = false
@@ -399,28 +401,29 @@ struct FolderItemView: View {
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                // LaunchOS-style folder with app icons
+                // LaunchOS-style folder with app icons - 使用动态大小
                 RoundedRectangle(cornerRadius: 14)
                     .fill(Color.accentColor.opacity(0.15))
-                    .frame(width: 80, height: 80)
+                    .frame(width: iconSize, height: iconSize)  // 使用动态 iconSize
                 
                 // Show up to 4 app icons in a grid (like LaunchOS)
                 if folderApps.isEmpty {
                     Image(systemName: "folder.fill")
-                        .font(.system(size: 28))
+                        .font(.system(size: iconSize * 0.35))
                         .foregroundColor(.accentColor)
                 } else {
-                    LazyVGrid(columns: [GridItem(.fixed(20)), GridItem(.fixed(20))], spacing: 2) {
+                    let gridSize = iconSize * 0.25
+                    LazyVGrid(columns: [GridItem(.fixed(gridSize)), GridItem(.fixed(gridSize))], spacing: 2) {
                         ForEach(Array(folderApps.prefix(4))) { app in
                             if let icon = app.icon {
                                 Image(nsImage: icon)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 18, height: 18)
+                                    .frame(width: gridSize - 2, height: gridSize - 2)
                                     .cornerRadius(3)
                             } else {
                                 Image(systemName: "app.fill")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: gridSize * 0.7))
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -437,7 +440,6 @@ struct FolderItemView: View {
                 isHovering = hovering
             }
             .onTapGesture(count: 2) {
-                // 双击进入编辑模式
                 editedName = folder.name
                 isEditing = true
             }
@@ -445,12 +447,12 @@ struct FolderItemView: View {
                 onTap()
             }
             
-            // 文件夹名称（支持编辑）
+            // 文件夹名称
             if isEditing {
                 TextField("文件夹名", text: $editedName)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .font(.caption)
-                    .frame(width: 80)
+                    .frame(width: iconSize)
                     .multilineTextAlignment(.center)
                     .onSubmit {
                         if !editedName.isEmpty && editedName != folder.name {
@@ -462,7 +464,7 @@ struct FolderItemView: View {
                 Text(folder.name)
                     .font(.caption)
                     .lineLimit(1)
-                    .frame(width: 80)
+                    .frame(width: iconSize)
             }
         }
         .contextMenu {
@@ -553,11 +555,19 @@ struct DraggableAppIconView: View {
             return NSItemProvider(object: app.bundleID as NSString)
         }
         .onDrop(of: [.text], isTargeted: $isDropTarget) { providers in
+            // 处理拖拽进入 - 创建文件夹或添加应用
             if let onDrop = onDrop {
                 onDrop(app)
             }
             return true
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 1)
+                .onEnded { value in
+                    // 拖拽结束时处理
+                    onDragEnd()
+                }
+        )
         .contextMenu {
             Button(action: { onLaunch(app) }) {
                 Label("打开", systemImage: "play.fill")
