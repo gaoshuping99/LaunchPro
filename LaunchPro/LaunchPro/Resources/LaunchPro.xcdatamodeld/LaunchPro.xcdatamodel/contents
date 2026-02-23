@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model version="1.0" versioningStrategy="1.0" name="LaunchPro" xmlns="http://www.apple.com/developer/xcdatamodel">
+  <entity name="AppEntity" representedClassName="AppEntity">
+    <attribute name="id" attributeType="String"/>
+    <attribute name="name" attributeType="String"/>
+    <attribute name="bundleID" attributeType="String"/>
+    <attribute name="url" attributeType="String"/>
+    <attribute name="alias" attributeType="String"/>
+    <attribute name="isHidden" attributeType="Boolean"/>
+    <attribute name="order" attributeType="Integer32"/>
+    <relationship name="group" destination="GroupEntity" toOne="YES"/>
+  </entity>
+  <entity name="GroupEntity" representedClassName="GroupEntity">
+    <attribute name="id" attributeType="String"/>
+    <attribute name="name" attributeType="String"/>
+    <attribute name="isFolder" attributeType="Boolean"/>
+    <attribute name="order" attributeType="Integer32"/>
+    <attribute name="page" attributeType="Integer32"/>
+    <relationship name="apps" destination="AppEntity" toMany="YES" inverseRelationship="group"/>
+  </entity>
+</model>
